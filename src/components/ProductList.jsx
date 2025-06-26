@@ -4,12 +4,23 @@ import toast from 'react-hot-toast';
 
 const ProductList = ({ onEditProduct, refreshTrigger }) => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
     loadProducts();
   }, [refreshTrigger]);
+
+  useEffect(() => {
+    const lowerSearch = searchTerm.toLowerCase();
+    const filtered = products.filter(product =>
+      product.title.toLowerCase().includes(lowerSearch) ||
+      product.category.toLowerCase().includes(lowerSearch)
+    );
+    setFilteredProducts(filtered);
+  }, [searchTerm, products]);
 
   const loadProducts = async () => {
     try {
@@ -63,100 +74,76 @@ const ProductList = ({ onEditProduct, refreshTrigger }) => {
   return (
     <>
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-900">Product List</h2>
-          <p className="text-sm text-gray-600 mt-1">Manage your existing products</p>
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Product List</h2>
+            <p className="text-sm text-gray-600 mt-1">Manage your existing products</p>
+          </div>
+          <input
+            type="text"
+            placeholder="Search by title or category..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
-        {products.length === 0 ? (
+        {filteredProducts.length === 0 ? (
           <div className="p-8 text-center">
             <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No products yet</h3>
-            <p className="text-gray-600">Get started by adding your first product above.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-600">Try searching with a different keyword.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-12 w-12">
+                        <div className="flex-shrink-0 h-28 w-28">
                           {product.images?.length > 0 ? (
                             <img
-                              className="h-12 w-12 rounded-lg object-cover"
+                              className="h-28 w-28 rounded-lg object-cover"
                               src={product.images[0].url}
                               alt={product.title}
                             />
                           ) : (
-                            <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                              <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="h-28 w-28 rounded-lg bg-gray-200 flex items-center justify-center">
+                              <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
                             </div>
                           )}
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {product.title}
-                          </div>
+                          <div className="text-sm font-medium text-gray-900">{product.title}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.category}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.category}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        product.isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {product.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => onEditProduct(product)}
-                        className="text-blue-600 hover:text-blue-900 transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(product.id, product.isActive)}
-                        className={`transition-colors ${
-                          product.isActive 
-                            ? 'text-yellow-600 hover:text-yellow-900' 
-                            : 'text-green-600 hover:text-green-900'
-                        }`}
-                      >
+                      <button onClick={() => onEditProduct(product)} className="text-blue-600 hover:text-blue-900 transition-colors">Edit</button>
+                      <button onClick={() => handleToggleStatus(product.id, product.isActive)} className={`transition-colors ${product.isActive ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'}`}>
                         {product.isActive ? 'Deactivate' : 'Activate'}
                       </button>
-                      <button
-                        onClick={() => setDeleteConfirm(product.id)}
-                        className="text-red-600 hover:text-red-900 transition-colors"
-                      >
-                        Delete
-                      </button>
+                      <button onClick={() => setDeleteConfirm(product.id)} className="text-red-600 hover:text-red-900 transition-colors">Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -178,23 +165,11 @@ const ProductList = ({ onEditProduct, refreshTrigger }) => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mt-4">Delete Product</h3>
               <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to delete this product? This action cannot be undone and will also delete all associated images.
-                </p>
+                <p className="text-sm text-gray-500">Are you sure you want to delete this product? This action cannot be undone and will also delete all associated images.</p>
               </div>
               <div className="items-center px-4 py-3 space-x-4">
-                <button
-                  onClick={() => setDeleteConfirm(null)}
-                  className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteProduct(deleteConfirm)}
-                  className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-                >
-                  Delete
-                </button>
+                <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">Cancel</button>
+                <button onClick={() => handleDeleteProduct(deleteConfirm)} className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">Delete</button>
               </div>
             </div>
           </div>

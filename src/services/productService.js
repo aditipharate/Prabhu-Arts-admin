@@ -69,6 +69,7 @@ export const addProduct = async (productData, imageFiles = []) => {
       isActive: true
     });
 
+    console.log(imageFiles)
     // Upload images if any
     const uploadedImages = [];
     if (imageFiles.length > 0) {
